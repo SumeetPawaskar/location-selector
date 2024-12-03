@@ -25,14 +25,14 @@ const LocationSelector = () => {
       });
   }, []);
 
-  // Fetch states when country is selected
+  
   useEffect(() => {
     if (selectedCountry) {
       axios
         .get(`https://crio-location-selector.onrender.com/country=${selectedCountry}/states`)
         .then((response) => {
           setStates(response.data);
-          setCities([]); // Clear cities when country changes
+          setCities([]); 
           setSelectedState('');
           setSelectedCity('');
         })
@@ -42,7 +42,7 @@ const LocationSelector = () => {
     }
   }, [selectedCountry]);
 
-  // Fetch cities when state is selected
+  
   useEffect(() => {
     if (selectedState) {
       axios
@@ -62,7 +62,7 @@ const LocationSelector = () => {
     const city = e.target.value;
     setSelectedCity(city);
     if (city) {
-      setSelectionOutput(`You Selected ${city}, ${selectedState}, ${selectedCountry}`);
+      setSelectionOutput(`You selected ${city}, ${selectedState}, ${selectedCountry}`);
     }
   };
 
@@ -88,7 +88,8 @@ const LocationSelector = () => {
         </div>
 
         {/* Select State Dropdown */}
-        {selectedCountry && (
+        {
+        //selectedCountry && (
           <div className="dropdown">
             <label htmlFor="state">Select State:</label>
             <select
@@ -104,10 +105,12 @@ const LocationSelector = () => {
               ))}
             </select>
           </div>
-        )}
+       // )
+        }
 
         {/* Select City Dropdown */}
-        {selectedState && (
+        {
+        // selectedState && (
           <div className="dropdown">
             <label htmlFor="city">Select City:</label>
             <select
@@ -123,7 +126,8 @@ const LocationSelector = () => {
               ))}
             </select>
           </div>
-        )}
+        // )
+        }
       </form>
 
       {/* Display Selection Output */}
