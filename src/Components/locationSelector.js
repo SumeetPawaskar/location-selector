@@ -1,7 +1,6 @@
 // src/components/LocationSelector.js
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 const LocationSelector = () => {
   // State variables
@@ -12,49 +11,71 @@ const LocationSelector = () => {
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectionOutput, setSelectionOutput] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // To handle error messages
 
   // Fetch countries on initial load
   useEffect(() => {
-    axios
-      .get('https://crio-location-selector.onrender.com/countries')
-      .then((response) => {
-        setCountries(response.data);
-      })
-      .catch((error) => {
+    const fetchCountries = async () => {
+      setErrorMessage(''); // Reset any previous errors
+      try {
+        const response = await fetch('https://crio-location-selector.onrender.com/countries');
+        if (!response.ok) {
+          throw new Error('Failed to fetch countries');
+        }
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        setErrorMessage('Failed to fetch countries. Please try again later.');
         console.error('Error fetching countries:', error);
-      });
+      }
+    };
+    fetchCountries();
   }, []);
 
-  
+  // Fetch states when country is selected
   useEffect(() => {
-    if (selectedCountry) {
-      axios
-        .get(`https://crio-location-selector.onrender.com/country=${selectedCountry}/states`)
-        .then((response) => {
-          setStates(response.data);
-          setCities([]); 
+    const fetchStates = async () => {
+      if (selectedCountry) {
+        setErrorMessage(''); // Reset any previous errors
+        try {
+          const response = await fetch(`https://crio-location-selector.onrender.com/country=${selectedCountry}/states`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch states');
+          }
+          const data = await response.json();
+          setStates(data);
+          setCities([]); // Clear cities when country changes
           setSelectedState('');
           setSelectedCity('');
-        })
-        .catch((error) => {
+        } catch (error) {
+          setErrorMessage('Failed to fetch states. Please try again later.');
           console.error('Error fetching states:', error);
-        });
-    }
+        }
+      }
+    };
+    fetchStates();
   }, [selectedCountry]);
 
-  
+  // Fetch cities when state is selected
   useEffect(() => {
-    if (selectedState) {
-      axios
-        .get(`https://crio-location-selector.onrender.com/country=${selectedCountry}/state=${selectedState}/cities`)
-        .then((response) => {
-          setCities(response.data);
+    const fetchCities = async () => {
+      if (selectedState) {
+        setErrorMessage(''); // Reset any previous errors
+        try {
+          const response = await fetch(`https://crio-location-selector.onrender.com/country=${selectedCountry}/state=${selectedState}/cities`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch cities');
+          }
+          const data = await response.json();
+          setCities(data);
           setSelectedCity(''); // Clear city when state changes
-        })
-        .catch((error) => {
+        } catch (error) {
+          setErrorMessage('Failed to fetch cities. Please try again later.');
           console.error('Error fetching cities:', error);
-        });
-    }
+        }
+      }
+    };
+    fetchCities();
   }, [selectedState, selectedCountry]);
 
   // Handle city selection
@@ -88,50 +109,47 @@ const LocationSelector = () => {
         </div>
 
         {/* Select State Dropdown */}
-        {
-        //selectedCountry && (
-          <div className="dropdown">
-            <label htmlFor="state">Select State:</label>
-            <select
-              id="state"
-              value={selectedState}
-              onChange={(e) => setSelectedState(e.target.value)}
-            >
-              <option value="">--Select State--</option>
-              {states.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </div>
-       // )
-        }
+        <div className="dropdown">
+          <label htmlFor="state">Select State:</label>
+          <select
+            id="state"
+            value={selectedState}
+            onChange={(e) => setSelectedState(e.target.value)}
+            disabled={!selectedCountry} // Disable if no country is selected
+          >
+            <option value="">--Select State--</option>
+            {states.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Select City Dropdown */}
-        {
-        // selectedState && (
-          <div className="dropdown">
-            <label htmlFor="city">Select City:</label>
-            <select
-              id="city"
-              value={selectedCity}
-              onChange={handleCityChange}
-            >
-              <option value="">--Select City--</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-          </div>
-        // )
-        }
+        <div className="dropdown">
+          <label htmlFor="city">Select City:</label>
+          <select
+            id="city"
+            value={selectedCity}
+            onChange={handleCityChange}
+            disabled={!selectedState} // Disable if no state is selected
+          >
+            <option value="">--Select City--</option>
+            {cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+        </div>
       </form>
 
       {/* Display Selection Output */}
       {selectionOutput && <p>{selectionOutput}</p>}
+
+      {/* Display Error Message */}
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
     </div>
   );
 };
